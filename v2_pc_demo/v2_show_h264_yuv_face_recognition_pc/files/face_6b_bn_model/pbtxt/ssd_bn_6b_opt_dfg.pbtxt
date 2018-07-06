@@ -1,0 +1,869 @@
+name: ""
+node {
+  name: "input_tensor"
+  op: "Input"
+  device: CPU
+  type: T_FLOAT
+  input_op_param {
+    shape {
+      dim: 3
+      dim: 256
+      dim: 256
+    }
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv2_1"
+  input: "input_tensor"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 32
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv2_1/BatchNorm"
+  input: "ssd_KYnet_v2/conv2_1"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: true
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/pool1"
+  input: "ssd_KYnet_v2/conv2_1/BatchNorm"
+  op: "MaxPool2D"
+  device: CPU
+  type: T_FLOAT
+  max_pool2d_op_param {
+    kernel_size: 2
+    stride: 2
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv2/conv2_1"
+  input: "ssd_KYnet_v2/pool1"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 32
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv2/conv2_1/BatchNorm"
+  input: "ssd_KYnet_v2/conv2/conv2_1"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: true
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv2/conv2_2"
+  input: "ssd_KYnet_v2/conv2/conv2_1/BatchNorm"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 32
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv2/conv2_2/BatchNorm"
+  input: "ssd_KYnet_v2/conv2/conv2_2"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: true
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/pool2"
+  input: "ssd_KYnet_v2/conv2/conv2_2/BatchNorm"
+  op: "MaxPool2D"
+  device: CPU
+  type: T_FLOAT
+  max_pool2d_op_param {
+    kernel_size: 2
+    stride: 2
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv3/conv3_1"
+  input: "ssd_KYnet_v2/pool2"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 48
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv3/conv3_1/BatchNorm"
+  input: "ssd_KYnet_v2/conv3/conv3_1"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: true
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv3/conv3_2"
+  input: "ssd_KYnet_v2/conv3/conv3_1/BatchNorm"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 48
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv3/conv3_2/BatchNorm"
+  input: "ssd_KYnet_v2/conv3/conv3_2"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: true
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv3/conv3_3"
+  input: "ssd_KYnet_v2/conv3/conv3_2/BatchNorm"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 48
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv3/conv3_3/BatchNorm"
+  input: "ssd_KYnet_v2/conv3/conv3_3"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: true
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block3_box/conv_loc"
+  input: "ssd_KYnet_v2/conv3/conv3_3/BatchNorm"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 16
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block3_box/conv_cls"
+  input: "ssd_KYnet_v2/conv3/conv3_3/BatchNorm"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 8
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/pool3"
+  input: "ssd_KYnet_v2/conv3/conv3_3/BatchNorm"
+  op: "MaxPool2D"
+  device: CPU
+  type: T_FLOAT
+  max_pool2d_op_param {
+    kernel_size: 2
+    stride: 2
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv4/conv4_1"
+  input: "ssd_KYnet_v2/pool3"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 64
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block3_box/conv_loc/BatchNorm"
+  input: "ssd_KYnet_v2/block3_box/conv_loc"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: false
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block3_box/conv_cls/BatchNorm"
+  input: "ssd_KYnet_v2/block3_box/conv_cls"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: false
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv4/conv4_1/BatchNorm"
+  input: "ssd_KYnet_v2/conv4/conv4_1"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: true
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/softmax"
+  input: "ssd_KYnet_v2/block3_box/conv_cls/BatchNorm"
+  op: "Softmax"
+  device: CPU
+  type: T_FLOAT
+  softmax_op_param {
+    shape {
+      dim: 16384
+      dim: 2
+    }
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv4/conv4_2"
+  input: "ssd_KYnet_v2/conv4/conv4_1/BatchNorm"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 64
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv4/conv4_2/BatchNorm"
+  input: "ssd_KYnet_v2/conv4/conv4_2"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: true
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv4_3"
+  input: "ssd_KYnet_v2/conv4/conv4_2/BatchNorm"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 96
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv4_3/BatchNorm"
+  input: "ssd_KYnet_v2/conv4_3"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: true
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv6"
+  input: "ssd_KYnet_v2/conv4_3/BatchNorm"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 128
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block4_box/conv_loc"
+  input: "ssd_KYnet_v2/conv4_3/BatchNorm"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 16
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block4_box/conv_cls"
+  input: "ssd_KYnet_v2/conv4_3/BatchNorm"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 8
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/conv6/BatchNorm"
+  input: "ssd_KYnet_v2/conv6"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: true
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block4_box/conv_loc/BatchNorm"
+  input: "ssd_KYnet_v2/block4_box/conv_loc"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: false
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block4_box/conv_cls/BatchNorm"
+  input: "ssd_KYnet_v2/block4_box/conv_cls"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: false
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/pool2_1"
+  input: "ssd_KYnet_v2/conv6/BatchNorm"
+  op: "MaxPool2D"
+  device: CPU
+  type: T_FLOAT
+  max_pool2d_op_param {
+    kernel_size: 2
+    stride: 2
+  }
+}
+node {
+  name: "ssd_KYnet_v2/softmax_1"
+  input: "ssd_KYnet_v2/block4_box/conv_cls/BatchNorm"
+  op: "Softmax"
+  device: CPU
+  type: T_FLOAT
+  softmax_op_param {
+    shape {
+      dim: 4096
+      dim: 2
+    }
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block8/conv3x3"
+  input: "ssd_KYnet_v2/pool2_1"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 128
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block7_box/conv_loc"
+  input: "ssd_KYnet_v2/pool2_1"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 24
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block7_box/conv_cls"
+  input: "ssd_KYnet_v2/pool2_1"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 12
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block8/conv3x3/BatchNorm"
+  input: "ssd_KYnet_v2/block8/conv3x3"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: true
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block7_box/conv_loc/BatchNorm"
+  input: "ssd_KYnet_v2/block7_box/conv_loc"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: false
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block7_box/conv_cls/BatchNorm"
+  input: "ssd_KYnet_v2/block7_box/conv_cls"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: false
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block8/pool"
+  input: "ssd_KYnet_v2/block8/conv3x3/BatchNorm"
+  op: "MaxPool2D"
+  device: CPU
+  type: T_FLOAT
+  max_pool2d_op_param {
+    kernel_size: 2
+    stride: 2
+  }
+}
+node {
+  name: "ssd_KYnet_v2/softmax_2"
+  input: "ssd_KYnet_v2/block7_box/conv_cls/BatchNorm"
+  op: "Softmax"
+  device: CPU
+  type: T_FLOAT
+  softmax_op_param {
+    shape {
+      dim: 1536
+      dim: 2
+    }
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block9/conv3x3"
+  input: "ssd_KYnet_v2/block8/pool"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 128
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block8_box/conv_loc"
+  input: "ssd_KYnet_v2/block8/pool"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 24
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block8_box/conv_cls"
+  input: "ssd_KYnet_v2/block8/pool"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 12
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block9/conv3x3/BatchNorm"
+  input: "ssd_KYnet_v2/block9/conv3x3"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: true
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block8_box/conv_loc/BatchNorm"
+  input: "ssd_KYnet_v2/block8_box/conv_loc"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: false
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block8_box/conv_cls/BatchNorm"
+  input: "ssd_KYnet_v2/block8_box/conv_cls"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: false
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block9/pool"
+  input: "ssd_KYnet_v2/block9/conv3x3/BatchNorm"
+  op: "MaxPool2D"
+  device: CPU
+  type: T_FLOAT
+  max_pool2d_op_param {
+    kernel_size: 2
+    stride: 2
+  }
+}
+node {
+  name: "ssd_KYnet_v2/softmax_3"
+  input: "ssd_KYnet_v2/block8_box/conv_cls/BatchNorm"
+  op: "Softmax"
+  device: CPU
+  type: T_FLOAT
+  softmax_op_param {
+    shape {
+      dim: 384
+      dim: 2
+    }
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block10/conv1x1"
+  input: "ssd_KYnet_v2/block9/pool"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 128
+    kernel_size: 1
+    pad: 0
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block9_box/conv_loc"
+  input: "ssd_KYnet_v2/block9/pool"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 24
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block9_box/conv_cls"
+  input: "ssd_KYnet_v2/block9/pool"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 12
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block10/conv1x1/BatchNorm"
+  input: "ssd_KYnet_v2/block10/conv1x1"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: true
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block9_box/conv_loc/BatchNorm"
+  input: "ssd_KYnet_v2/block9_box/conv_loc"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: false
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block9_box/conv_cls/BatchNorm"
+  input: "ssd_KYnet_v2/block9_box/conv_cls"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: false
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block10/pool"
+  input: "ssd_KYnet_v2/block10/conv1x1/BatchNorm"
+  op: "MaxPool2D"
+  device: CPU
+  type: T_FLOAT
+  max_pool2d_op_param {
+    kernel_size: 2
+    stride: 2
+  }
+}
+node {
+  name: "ssd_KYnet_v2/softmax_4"
+  input: "ssd_KYnet_v2/block9_box/conv_cls/BatchNorm"
+  op: "Softmax"
+  device: CPU
+  type: T_FLOAT
+  softmax_op_param {
+    shape {
+      dim: 96
+      dim: 2
+    }
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block10_box/conv_loc"
+  input: "ssd_KYnet_v2/block10/pool"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 16
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block10_box/conv_cls"
+  input: "ssd_KYnet_v2/block10/pool"
+  op: "Conv2D"
+  device: CPU
+  type: T_FLOAT
+  conv2d_op_param {
+    depth: 8
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    use_relu: false
+    use_maxpool_2x2: false
+    use_batch_norm: false
+    use_bias: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block10_box/conv_loc/BatchNorm"
+  input: "ssd_KYnet_v2/block10_box/conv_loc"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: false
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/block10_box/conv_cls/BatchNorm"
+  input: "ssd_KYnet_v2/block10_box/conv_cls"
+  op: "BatchNorm"
+  device: CPU
+  type: T_FLOAT
+  batchnorm_op_param {
+    use_relu: false
+    use_maxpool_2x2: false
+  }
+}
+node {
+  name: "ssd_KYnet_v2/softmax_5"
+  input: "ssd_KYnet_v2/block10_box/conv_cls/BatchNorm"
+  op: "Softmax"
+  device: CPU
+  type: T_FLOAT
+  softmax_op_param {
+    shape {
+      dim: 16
+      dim: 2
+    }
+  }
+}

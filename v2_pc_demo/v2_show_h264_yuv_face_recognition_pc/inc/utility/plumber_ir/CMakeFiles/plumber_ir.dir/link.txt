@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC -O3 -DNDEBUG  -shared -Wl,-soname,libplumber_ir.so -o libplumber_ir.so CMakeFiles/plumber_ir.dir/plumber_ir/op_param_def.pb.cc.o CMakeFiles/plumber_ir.dir/plumber_ir/dfg_def.pb.cc.o CMakeFiles/plumber_ir.dir/plumber_ir/type_def.pb.cc.o -lprotobuf -lpthread 
