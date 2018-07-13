@@ -1,4 +1,4 @@
-# enlarge
+# Enlarge
   This is the screen larger demo.
 ## Quick start
 
