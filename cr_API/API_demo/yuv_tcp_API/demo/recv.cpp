@@ -7,17 +7,17 @@ int main(int argc, char *argv[])
 
   while(1)
   {
-  YUV_DATA yuvData;
-  recv_yuv((void *)&so, &yuvData);
+    YUV_DATA yuvData;
+    recv_yuv((void *)&so, &yuvData);
 
-  printf("Id      :%d \n",yuvData.yuvPram->Id       );
-  printf("Width   :%d \n",yuvData.yuvPram->Width    );
-  printf("Height  :%d \n",yuvData.yuvPram->Height   );
-  printf("Channel :%d \n",yuvData.yuvPram->Channel  );
-  printf("BuffSize:%d \n",yuvData.yuvPram->BuffSize );
+    printf("Id      :%d \n",yuvData.yuvPram->Id       );
+    printf("Width   :%d \n",yuvData.yuvPram->Width    );
+    printf("Height  :%d \n",yuvData.yuvPram->Height   );
+    printf("Channel :%d \n",yuvData.yuvPram->Channel  );
+    printf("BuffSize:%d \n",yuvData.yuvPram->BuffSize );
 
-  free_yuvPram_mem(yuvData.yuvPram);
-  free_yuv_mem(yuvData.yuvBuff);
+    free_yuvPram_mem(yuvData.yuvPram);
+    free_yuv_mem(yuvData.yuvBuff);
   }
   return 0;
 }
