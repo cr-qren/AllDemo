@@ -215,5 +215,5 @@ int Cr_tcp::recvData(void *ptr, int size)
     }
   }
 
-  return ret 
+  return ret;
 }
