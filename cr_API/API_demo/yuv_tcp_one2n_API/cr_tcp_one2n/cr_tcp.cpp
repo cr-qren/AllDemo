@@ -199,7 +199,7 @@ int Cr_tcp::recvData(void *ptr, int size)
   if(this->server_flag)
   {
     ret = recv(this->connect_fd, ptr, size, MSG_WAITALL);
-    if(ret < 0)
+    if(ret <= 0)
     {
       perror("[ TCP Server ] Socketfd Break And Recv");
       this->connect_flag = false;
@@ -208,12 +208,12 @@ int Cr_tcp::recvData(void *ptr, int size)
   else
   {
     ret = recv(this->socket_fd, ptr, size, MSG_WAITALL);
-    if(ret < 0)
+    if(ret <= 0)
     {
       perror("[ TCP Client ] Socketfd Break And Recv");
       this->connect_flag = false;
     }
   }
 
-  return ret;
+  return ret 
 }
