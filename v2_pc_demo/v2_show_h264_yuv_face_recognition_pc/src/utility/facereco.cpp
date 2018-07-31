@@ -25,7 +25,8 @@ FaceSDK::CrFaceSDK *Init()
     new FaceSDK::CrFaceSDK("../files/face_6b_bn_model/pbtxt/ssd_bn_6b_opt_dfg.pbtxt",
                            "../files/face_6b_bn_model/weights/float_little/",
                            "../files/face_6b_bn_model/param/",
-                           "../files/dlib_face_recognition_resnet_model_v1.dat");
+                           "../files/dlib_face_recognition_resnet_model_v1.dat",
+                           "../files/shape_predictor_5_face_landmarks.dat");
 
   ifstream fid("../img_dataset/list (copy).txt");
   string delimiter(".");

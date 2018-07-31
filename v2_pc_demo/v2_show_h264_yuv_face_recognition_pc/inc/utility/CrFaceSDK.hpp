@@ -11,11 +11,11 @@ namespace FaceSDK {
 
 class CrFaceSDK {
     public:
-        CrFaceSDK(string dfg_def_file, string weights_path, string post_param_file, string dlib_model_path) {
+        CrFaceSDK(string dfg_def_file, string weights_path, string post_param_file, string dlib_model_path, string dlib_model_path_1) {
             ptr_detector = new CrDetector(det_mid);
             ptr_detector->CrDetetorInit(dfg_def_file, weights_path, post_param_file);
             ptr_tracker = new Tracker();
-            ptr_feat = new CrFeature(dlib_model_path);
+            ptr_feat = new CrFeature(dlib_model_path, dlib_model_path_1);
             ptr_faceid = new CrFaceID();
 
             LOG(INFO) << "Init CrFaceSDK Succeed!";

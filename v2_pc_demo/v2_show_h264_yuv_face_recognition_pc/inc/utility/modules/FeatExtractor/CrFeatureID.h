@@ -40,80 +40,111 @@ std::vector<matrix<float,0,1>> face_feature ---> variable storing faces' feature
 *******************************************************************************/
 class CrFeature
 {
-	private:
-		template <template <int,template<typename>class,int,typename> class block, int N, template<typename>class BN, typename SUBNET>
-		using residual = add_prev1<block<N,BN,1,tag1<SUBNET>>>;
+private:
+  template <template <int,template<typename>class,int,typename> class block, int N, template<typename>class BN, typename SUBNET>
+    using residual = add_prev1<block<N,BN,1,tag1<SUBNET>>>;
 
-		template <template <int,template<typename>class,int,typename> class block, int N, template<typename>class BN, typename SUBNET>
-		using residual_down = add_prev2<avg_pool<2,2,2,2,skip1<tag2<block<N,BN,2,tag1<SUBNET>>>>>>;
+  template <template <int,template<typename>class,int,typename> class block, int N, template<typename>class BN, typename SUBNET>
+    using residual_down = add_prev2<avg_pool<2,2,2,2,skip1<tag2<block<N,BN,2,tag1<SUBNET>>>>>>;
 
-		template <int N, template <typename> class BN, int stride, typename SUBNET>
-		using block  = BN<con<N,3,3,1,1,relu<BN<con<N,3,3,stride,stride,SUBNET>>>>>;
+  template <int N, template <typename> class BN, int stride, typename SUBNET>
+    using block  = BN<con<N,3,3,1,1,relu<BN<con<N,3,3,stride,stride,SUBNET>>>>>;
 
-		template <int N, typename SUBNET> using ares      = relu<residual<block,N,affine,SUBNET>>;
-		template <int N, typename SUBNET> using ares_down = relu<residual_down<block,N,affine,SUBNET>>;
+  template <int N, typename SUBNET> using ares      = relu<residual<block,N,affine,SUBNET>>;
+  template <int N, typename SUBNET> using ares_down = relu<residual_down<block,N,affine,SUBNET>>;
 
-		template <typename SUBNET> using alevel0 = ares_down<256,SUBNET>;
-		template <typename SUBNET> using alevel1 = ares<256,ares<256,ares_down<256,SUBNET>>>;
-		template <typename SUBNET> using alevel2 = ares<128,ares<128,ares_down<128,SUBNET>>>;
-		template <typename SUBNET> using alevel3 = ares<64,ares<64,ares<64,ares_down<64,SUBNET>>>>;
-		template <typename SUBNET> using alevel4 = ares<32,ares<32,ares<32,SUBNET>>>;
+  template <typename SUBNET> using alevel0 = ares_down<256,SUBNET>;
+  template <typename SUBNET> using alevel1 = ares<256,ares<256,ares_down<256,SUBNET>>>;
+  template <typename SUBNET> using alevel2 = ares<128,ares<128,ares_down<128,SUBNET>>>;
+  template <typename SUBNET> using alevel3 = ares<64,ares<64,ares<64,ares_down<64,SUBNET>>>>;
+  template <typename SUBNET> using alevel4 = ares<32,ares<32,ares<32,SUBNET>>>;
 
-		using anet_type = loss_metric<fc_no_bias<128,avg_pool_everything<
-		                            alevel0<
-		                            alevel1<
-		                            alevel2<
-		                            alevel3<
-		                            alevel4<
-		                            max_pool<3,3,2,2,relu<affine<con<32,7,7,2,2,
-		                            input_rgb_image_sized<150>
-		                            >>>>>>>>>>>>;
+  using anet_type = loss_metric<fc_no_bias<128,avg_pool_everything<
+    alevel0<
+    alevel1<
+    alevel2<
+    alevel3<
+    alevel4<
+    max_pool<3,3,2,2,relu<affine<con<32,7,7,2,2,
+    input_rgb_image_sized<150>
+      >>>>>>>>>>>>;
 
-		std::vector<matrix<float,0,1>> face_feature;
-		matrix<rgb_pixel> face;
-		Size size;
-		cv::Mat resizeImg;
-        anet_type net;
+  std::vector<matrix<float,0,1>> face_feature;
+  matrix<rgb_pixel> face;
+  Size size;
+  cv::Mat resizeImg;
+  shape_predictor sp;
+  anet_type net;
 
-	public:
-		CrFeature(string net_def_path)
-		{
-            LOG(INFO)<<"Init FeatExtractor";
-			size = Size(150, 150);
-            //deserialize("/home/chao/cpp_proj/faceDemo/build/dlib_face_recognition_resnet_model_v1.dat") >> (*net);
-            deserialize(net_def_path.c_str()) >> net;
-            LOG(INFO)<<"Init FeatExtractor Finish";
-		}
-        ~CrFeature() {
+public:
+  CrFeature(string net_def_path, string landmark_path)
+  {
+    LOG(INFO)<<"Init FeatExtractor";
+    size = Size(150, 150);
+    //deserialize("/home/chao/cpp_proj/faceDemo/build/dlib_face_recognition_resnet_model_v1.dat") >> (*net);
+    deserialize(net_def_path.c_str()) >> net;
+    deserialize(landmark_path.c_str()) >> sp;
+    LOG(INFO)<<"Init FeatExtractor Finish";
+  }
+  ~CrFeature() {
 
-        }
+  }
 
-		void extract_feature(std::vector<Mat>& input_face, std::vector<matrix<float,0,1>>& face_feature)
-		{
+  void extract_feature(std::vector<Mat>& input_face, std::vector<matrix<float,0,1>>& face_feature)
+  {
 
-		    std::vector<matrix<rgb_pixel>> faces;
-			for (unsigned int i = 0; i < input_face.size(); i++)
-			{
-				cv::resize(input_face[i], resizeImg, size);
-				assign_image(face, cv_image<rgb_pixel>(resizeImg));
-				faces.push_back(move(face));
-			}
-			face_feature = net(faces);
-			//cout <<  face_feature[0] << endl;
-		}
+    std::vector<matrix<rgb_pixel>> faces;
+    for (unsigned int i = 0; i < input_face.size(); i++)
+    {
+      cv::resize(input_face[i], resizeImg, size);
+      assign_image(face, cv_image<rgb_pixel>(resizeImg));
+      faces.push_back(move(face));
+    }
+    face_feature = net(faces);
+    //cout <<  face_feature[0] << endl;
+  }
 
-        void extract_feature(std::vector<FaceGroup>& input_face, std::vector<matrix<float,0,1>>& face_feature)
-		{
+  void extract_feature(std::vector<FaceGroup>& input_face, std::vector<matrix<float,0,1>>& face_feature)
+  {
 
-		    std::vector<matrix<rgb_pixel>> faces;
-			for (unsigned int i = 0; i < input_face.size(); i++)
-			{
-				cv::resize(input_face[i].faceImage, resizeImg, size);
-				assign_image(face, cv_image<rgb_pixel>(resizeImg));
-				faces.push_back(move(face));
-			}
-			face_feature = net(faces);
-			//cout <<  face_feature[0] << endl;
+    std::vector<matrix<rgb_pixel>> faces;
+    matrix<rgb_pixel> face_chip;
+    cv::Mat image_border;
+    // Scalar value(0, 0, 0);
+    for (unsigned int i = 0; i < input_face.size(); i++)
+    {
+      int height = input_face[i].faceImage.rows;
+      int width = input_face[i].faceImage.cols;
+
+      copyMakeBorder(input_face[i].faceImage, image_border, height, height, width, width, 0);
+
+      // imshow("source_image", input_face[i].faceImage);
+      // waitKey(0);
+      // imshow("image_border", image_border);
+      // waitKey(0);
+
+      long left = width;
+      long top = height;
+      long right = 2*width;
+      long bottom = 2*height;
+      dlib::rectangle coord = dlib::rectangle(left, top, right, bottom);
+      // cout << "coordinate: " << coord << endl;
+      assign_image(face, cv_image<rgb_pixel>(image_border));
+      auto shape = sp(face, coord);
+      extract_image_chip(face, get_face_chip_details(shape,150,0.25), face_chip);
+      faces.push_back(move(face_chip));
+    }
+    face_feature = net(faces);
+    //cout <<  face_feature[0] << endl;
+    //		    std::vector<matrix<rgb_pixel>> faces;
+//			for (unsigned int i = 0; i < input_face.size(); i++)
+//			{
+//				cv::resize(input_face[i].faceImage, resizeImg, size);
+//				assign_image(face, cv_image<rgb_pixel>(resizeImg));
+//				faces.push_back(move(face));
+//			}
+//			face_feature = net(faces);
+//			//cout <<  face_feature[0] << endl;
 		}
 
 
@@ -228,7 +259,7 @@ class CrFaceID
 
 	public:
 		CrFaceID() {
-			threshold = 0.4;
+			threshold = 0.6;
 			LOG(INFO)<<"Init CrFaceID";}
         ~CrFaceID() {}
 		// idDatabase -- face identification database vector<128, 1>
