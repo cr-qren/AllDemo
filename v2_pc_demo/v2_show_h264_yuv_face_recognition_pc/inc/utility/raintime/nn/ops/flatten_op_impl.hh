@@ -39,7 +39,6 @@ class FlattenOpImpl : public OpImpl {
   explicit FlattenOpImpl(OpImplContext *ctx);
 
   void Run(OpImplEnv *env);
-  TensorShape GetOutputTensorShape(OpImplEnv *env);
 };
 
 }  // namespace ops

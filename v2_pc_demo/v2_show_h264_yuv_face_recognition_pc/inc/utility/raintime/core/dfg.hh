@@ -15,7 +15,6 @@
 
 #include "plumber_ir/dfg_def.pb.h"
 #include "plumber_ir/type_def.pb.h"
-#include "raintime/core/device.hh"
 
 namespace raintime {
 namespace dfg {
@@ -46,10 +45,6 @@ class DFGNode {
 
   void AddInEdge(DFGEdge* edge);
   void AddOutEdge(DFGEdge* edge);
-
-  bool AllInNodesOnFpga() const;
-  bool AllOutNodesOnFpga() const;
-  bool is_on_fpga() const { return node_def_.device() == DEVICE_FPGA; }
 
  private:
   DFG* dfg_;
@@ -95,7 +90,7 @@ class DFG {
   std::vector<DFGEdge*> edges_;
   std::map<std::string, DFGNode*> node_map_;
 };
-}  // namespace dfg
-}  // namespace raintime
+}
+}
 
 #endif

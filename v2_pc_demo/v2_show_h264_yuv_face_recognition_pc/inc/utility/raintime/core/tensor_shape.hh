@@ -64,16 +64,13 @@ class TensorShape {
     }
 
     // copy
-    for (auto dim : l) {
-      dims_.push_back(dim);
-    }
+    dims_ = l;
   }
 
   /*! copy ctor */
   TensorShape(const TensorShape &rhs) {
     // copy the dims vector from rhs to the current object
     this->dims_ = rhs.GetDims();
-    this->pad_size_ = rhs.pad_size();
   }
 
   friend bool operator==(const TensorShape &lhs, const TensorShape &rhs) {
@@ -118,7 +115,6 @@ class TensorShape {
    * \return number of elements in that dimension
    */
   int64_t GetDim(int idx) const { return dims_[idx]; }
-  int64_t dim(int idx) const { return dims_[idx]; }
 
   /*! Get total number of elements
    * \return Total number of elements
@@ -164,23 +160,6 @@ class TensorShape {
     dims_.push_back(num_elems);
   }
 
-  /*!< Set up padding size. */
-  void set_pad_size(size_t pad_size) {
-    // by default we assume the data_format is NCHW;
-    CHECK(GetNumDims() == 4) << "Only 4-D tensor can be set pad size";
-
-    auto height = GetDim(2);
-    auto width = GetDim(3);
-
-    CHECK(pad_size * 2 < height && pad_size * 2 < width)
-        << "pad_size * 2 (" << pad_size * 2 << ") should not exceed height ("
-        << height << ") or width (" << width << ")";
-
-    pad_size_ = pad_size;
-  }
-
-  size_t pad_size() const { return pad_size_; }
-
   /*! Convert tensor shape to DSizes in Eigen.
    *
    * \return Eigen DSizes
@@ -205,8 +184,6 @@ class TensorShape {
 
  private:
   std::vector<int64_t> dims_;
-
-  size_t pad_size_ = 0;
 };
 }  // namespace tensor
 }  // namespace raintime

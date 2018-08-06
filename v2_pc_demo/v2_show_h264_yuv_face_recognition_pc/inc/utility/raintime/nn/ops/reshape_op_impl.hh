@@ -41,7 +41,6 @@ class ReshapeOpImpl : public OpImpl {
   explicit ReshapeOpImpl(OpImplContext *ctx);
 
   void Run(OpImplEnv *env);
-  TensorShape GetOutputTensorShape(OpImplEnv *env);
 };
 
 }  // namespace ops

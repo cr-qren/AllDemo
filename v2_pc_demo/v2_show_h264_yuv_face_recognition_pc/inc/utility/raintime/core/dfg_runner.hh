@@ -19,7 +19,6 @@
 
 #include <map>
 #include <set>
-#include <tuple>
 
 using namespace plumber_ir;
 using namespace raintime::tensor;
@@ -27,15 +26,12 @@ using namespace raintime::op_impl;
 
 namespace raintime {
 namespace dfg {
-
 class DFGRunner {
  public:
   using TensorMap = std::map<std::string, Tensor *>;
   using TensorMapKeyT = std::string;
   using TensorMapPair = std::pair<std::string, Tensor *>;
   using NodeList = std::vector<DFGNode *>;
-  using NodeOpEnv = std::tuple<DFGNode *, OpImpl *, OpImplEnv *>;
-  using NodeOpEnvList = std::vector<NodeOpEnv>;
   using DeviceEnum = DFGNodeDef_Device;
 
   /*! The default constructor for the DFGRunner.
@@ -49,11 +45,6 @@ class DFGRunner {
   DFGDataMap *Run(DFG *dfg, DFGDataMap *const_data_map,
                   DFGDataMap *input_data_map,
                   bool collect_intermediate_output = false);
-  void RunTypeCast(DFGNode *node);
-
-  /*! Pre-build the environment before running.
-   */
-  void Build(DFG *dfg, DFGDataMap *const_data_map);
 
   /*!< Look for whether the tensor exists. */
   bool HasTensor(TensorMapKeyT key);
@@ -86,7 +77,7 @@ class DFGRunner {
                                      TensorMapKeyT tensor_key);
 
   Allocator *GetAllocator(DeviceEnum device);
-  TensorShape GetInputTensorShape(DFGNode *node);
+  TensorShape GetInputTensorShape(DFGNodeDef node_def);
 
   /*! Create tensor in the tensor_map_ */
   Tensor *CreateTensor(TensorMapKeyT name, DeviceEnum device, DataType type,
@@ -138,7 +129,6 @@ class DFGRunner {
    */
   void InitInputNodes(DFG *dfg, NodeList *nodes_to_process,
                       DFGDataMap *input_data_map);
-  void InitInputNodes(DFG *dfg, NodeList *nodes_to_process);
 
   /*! Create tensors for constants found by checking each node in the DFG.
    *
@@ -150,12 +140,9 @@ class DFGRunner {
    */
   void InitConstTensors(DFG *dfg, DFGDataMap *data_map);
 
-  void LoadInputDataMap(DFG *dfg, DFGDataMap *input_data_map);
-
   DFGNode *UpdateNodesToProcess(NodeList *nodes_to_process);
 
   OpImpl *CreateOpImpl(DFGNode *node);
-  OpImpl *CreateOpImpl(DFGNode *node, const char *op_impl_label);
   OpImplEnv *CreateOpImplEnv(DFGNode *node);
   DFGDataMap *CreateOutputDataMap(DFG *dfg,
                                   bool collect_intermediate_output = false);
@@ -169,32 +156,16 @@ class DFGRunner {
   void set_allow_tensor_overwrite(bool allow_tensor_overwrite) {
     allow_tensor_overwrite_ = allow_tensor_overwrite;
   }
-  void set_use_refer_in_fixed_point(bool use_refer_in_fixed_point) {
-    use_refer_in_fixed_point_ = use_refer_in_fixed_point;
-  }
-  void set_force_sync_raw_data(bool force_sync_raw_data) {
-    force_sync_raw_data_ = force_sync_raw_data;
-  }
-  void set_force_build_before_run(bool flag) { force_build_before_run_ = flag; }
 
   bool IsTensorCreated(TensorMapKeyT key) const {
     return created_tensors_.find(key) != created_tensors_.end();
   }
 
-  /*!< Recycle all allocated NodeOpEnv */
-  void RecycleAllNodeOpEnvs();
+  /*!< Recycle all allocated op_impl_env during a single run. */
+  void RecycleAllOpImplEnvs();
 
   /*!< Recycle all allocated tensors for type casting. */
   void RecycleTypeCastTensors();
-
-  /*!< Log out real address allocated for all tensors in tensor_map_. */
-  void LogAllTensorAddresses();
-
-  /*!< Log the raw data synchronisation setting for every tensor */
-  void LogAllTensorSyncSettings();
-
-  /*!< Dump data to file, for hardware vertification, always in SIM*/
-  void DumpTensorDataToFile();
 
  private:
   bool reuse_tensor_ = true;  /*!< shall we reuse tensor by name */
@@ -202,12 +173,6 @@ class DFGRunner {
   bool allow_tensor_overwrite_ = false; /*!< tensor entry can be overwriten */
   /*!< automatically recycle type case tensors in the end */
   bool recycle_type_cast_tensors_ = true;
-  /*!< whether to use refer implementation for fixed-point */
-  bool use_refer_in_fixed_point_ = false;
-  /*!< force to synchronise data between typed and raw */
-  bool force_sync_raw_data_ = false;
-  /*!< Do not allow building while running */
-  bool force_build_before_run_ = false;
 
   bool is_sim_;
   size_t base_addr_;
@@ -216,12 +181,9 @@ class DFGRunner {
   DefaultCpuAllocator *cpu_alct_;
   LinearAllocator *fpga_alct_;
 
-  // states
-  bool is_built_ = false;
-
   TensorMap tensor_map_;
   std::set<TensorMapKeyT> created_tensors_;
-  NodeOpEnvList node_op_envs_;
+  std::vector<OpImplEnv *> op_impl_envs_;
 };
 }  // namespace dfg
 }  // namespace raintime

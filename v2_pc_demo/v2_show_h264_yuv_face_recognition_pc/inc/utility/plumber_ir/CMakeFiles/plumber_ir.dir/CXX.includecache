@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -6,9 +6,9 @@
 
 #IncludeRegexTransform: 
 
-/home/admini/raintime/build/third_party/plumber_ir/plumber_ir/dfg_def.pb.cc
+/home/chao/cpp_proj/raintime/build/third_party/plumber_ir/plumber_ir/dfg_def.pb.cc
 plumber_ir/dfg_def.pb.h
-/home/admini/raintime/build/third_party/plumber_ir/plumber_ir/plumber_ir/dfg_def.pb.h
+/home/chao/cpp_proj/raintime/build/third_party/plumber_ir/plumber_ir/plumber_ir/dfg_def.pb.h
 algorithm
 -
 google/protobuf/stubs/common.h
@@ -28,9 +28,9 @@ google/protobuf/reflection_ops.h
 google/protobuf/wire_format.h
 -
 
-/home/admini/raintime/build/third_party/plumber_ir/plumber_ir/op_param_def.pb.cc
+/home/chao/cpp_proj/raintime/build/third_party/plumber_ir/plumber_ir/op_param_def.pb.cc
 plumber_ir/op_param_def.pb.h
-/home/admini/raintime/build/third_party/plumber_ir/plumber_ir/plumber_ir/op_param_def.pb.h
+/home/chao/cpp_proj/raintime/build/third_party/plumber_ir/plumber_ir/plumber_ir/op_param_def.pb.h
 algorithm
 -
 google/protobuf/stubs/common.h
@@ -50,9 +50,9 @@ google/protobuf/reflection_ops.h
 google/protobuf/wire_format.h
 -
 
-/home/admini/raintime/build/third_party/plumber_ir/plumber_ir/type_def.pb.cc
+/home/chao/cpp_proj/raintime/build/third_party/plumber_ir/plumber_ir/type_def.pb.cc
 plumber_ir/type_def.pb.h
-/home/admini/raintime/build/third_party/plumber_ir/plumber_ir/plumber_ir/type_def.pb.h
+/home/chao/cpp_proj/raintime/build/third_party/plumber_ir/plumber_ir/plumber_ir/type_def.pb.h
 algorithm
 -
 google/protobuf/stubs/common.h

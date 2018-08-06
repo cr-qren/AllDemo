@@ -19,13 +19,12 @@
 #include <iostream>
 #include <memory>
 #include <type_traits>
-
 #define IN_CACHE_SIZE 128 * 1024
-// #define RAINMAN_TEST
+#define RAINMAN_TEST
 
 template <typename T>
-void PaddingInputData(const T *orig_input, T *new_input, int height, int width,
-                      int num_channels) {
+void padding_input_data(const T *orig_input, T *new_input, int height,
+                        int width, int num_channels) {
   for (int c = 0; c < num_channels; c++) {
     for (int h = 0; h < height; h++) {
       for (int w = 0; w < width; w++) {
@@ -85,42 +84,29 @@ struct Conv2DRainmanAccel<T, Conv2DAccelImpl::REAL> {
                   const T *bias_data, const T *bn_a_data, const T *bn_b_data,
                   T *output_data, int height, int width, int num_channels,
                   int num_filters, int kernel_size, int pad, int stride,
-                  bool use_relu = false, bool use_maxpool_2x2 = false,
-                  bool is_input_padded = false, bool is_output_padded = false) {
+                  bool use_relu = false, bool use_maxpool_2x2 = false) {
     LOG(INFO) << "Conv2DRainmanAccel REAL start";
     // check type
-
-    if (!(std::is_same<T, int32_t>::value || std::is_same<T, int16_t>::value ||
-          std::is_same<T, int8_t>::value))
-      LOG(FATAL) << "Data-type of input pointers is not supported on FPGA, "
-                    "should be one of (int32_t, int16_t, int8_t).";
+    if (!std::is_same<T, int32_t>::value)
+      LOG(FATAL) << "Specialised type T should be an int32_t";
 
     // prepare parameters
     auto dev = FpgaDevice::Global();
-    auto p = dev->GetMemDev();
-    auto alct = LinearAllocator::Global((size_t)p, DDR_MEM_SIZE);
-
+    // LOG(INFO) << dev->base_addr();
     bool use_bias = bias_data != nullptr;
+    int input_addr = reinterpret_cast<size_t>(input_data);
+    int coeff_addr = reinterpret_cast<size_t>(weights_data);
+    int output_addr = reinterpret_cast<size_t>(output_data);
     bool use_bn = bn_a_data != nullptr;
-
-    auto input_addr = reinterpret_cast<size_t>(input_data);
-    auto coeff_addr = reinterpret_cast<size_t>(weights_data);
-    auto output_addr = reinterpret_cast<size_t>(output_data);
-
     size_t bias_addr, a_addr, b_addr;
     if (use_bias) bias_addr = reinterpret_cast<size_t>(bias_data);
     if (use_bn) {
       a_addr = reinterpret_cast<size_t>(bn_a_data);
       b_addr = reinterpret_cast<size_t>(bn_b_data);
     }
-
     int block_size = 0;
-    // if the input tensor has been padded, then height and width are already
-    // padded values.
-    if (!is_input_padded) {
-      height += 2 * pad;
-      width += 2 * pad;
-    }
+    height += 2 * pad;
+    width += 2 * pad;
 
     if (height >= 34) {
       if (34 * 34 * num_channels <= IN_CACHE_SIZE) {
@@ -144,23 +130,35 @@ struct Conv2DRainmanAccel<T, Conv2DAccelImpl::REAL> {
       LOG(FATAL) << "Cannot support!";
     // LOG(INFO) << "block_size is: " << block_size;
 
-    T *new_input = nullptr;
-
-    bool use_padding = (pad != 0) && !is_input_padded;
-
+    bool use_padding = (pad != 0);
+    auto p = dev->GetMemDev();
+    auto alct = LinearAllocator::Global((size_t)p, DDR_MEM_SIZE);
+    auto new_input = alct->Alloc<T>(height * width * num_channels);
+    // LOG(INFO) << (size_t)new_input << "\n" << (size_t)p;
     if (use_padding) {
-      LOG(WARNING) << "should not do pad!";
-      new_input = alct->Alloc<T>(height * width * num_channels);
-      CHECK_NOTNULL(new_input);
-      // LOG(INFO) << (size_t)new_input << "\n" << (size_t)p;
-
-      PaddingInputData<T>(input_data, new_input, height, width, num_channels);
-
+      padding_input_data<T>(input_data, new_input, height, width, num_channels);
       input_addr = reinterpret_cast<size_t>(new_input);
     }
+// for(int i = 0; i < height * width * num_channels; i++)
+//  std::cout << "NEW" << new_input[i] << std::endl;
+// for(int j = 0; j < (height - 2 * pad) * (width - 2 * pad) * num_channels;
+// j ++)
+//  std::cout << "ORIG" << input_data[j] << std::endl;
+/*
+std::ofstream new_data("/root/new_data.bin", std::ios::out |
+std::ios::binary); for(int i = 0; i < height * width * num_channels; i++)
+  new_data.write((char *)&new_input[i], sizeof(unsigned int));
+  //new_data << static_cast<float>(new_input[i]) / (1 << 20) << std::endl;
+new_data.close();
 
-/* ifdef RAINMAN_TEST, do weight convert for hardware PF;*/
-#ifdef RAINMAN_TEST
+std::ofstream orig_data("/root/orig_data.bin", std::ios::out |
+std::ios::binary); for(int j = 0; j < (height - 2 * pad) * (width - 2 * pad)
+* num_channels; j ++) orig_data.write((char *)&input_data[j],
+sizeof(unsigned int));
+  //orig_data << static_cast<float>( input_data[j])/(1 << 20) << std::endl;
+orig_data.close();
+*/
+#ifdef TEST_RAINMAN
     int weights_num_elems =
         num_filters * num_channels * kernel_size * kernel_size;
     auto new_coeff = alct->Alloc<T>(weights_num_elems);
@@ -169,21 +167,28 @@ struct Conv2DRainmanAccel<T, Conv2DAccelImpl::REAL> {
     ConvertCoeff<T>(new_coeff, weights_num_elems, num_filters, num_channels);
     coeff_addr = reinterpret_cast<size_t>(new_coeff);
 #endif
-    //TODO:(jiajun) find a better way to decide whether it is the first conv2d
-    if (num_channels != 3) input_addr -= sizeof(T);
-    if (is_output_padded) {
-      output_addr += ((use_maxpool_2x2 ? height / 2 : height) + 1) * sizeof(T);
-    }
+    // for(int i = 0; i < kernel_size * num_channels * kernel_size *
+    // num_filters; i++)
+    //  std::cout << "NEW" << new_coeff[i] << "ORIG" << weights_data[i] <<
+    //  std::endl;
+    /*
+    std::ofstream coeff_data("/root/orig_coeff_data.bin", std::ios::out |
+    std::ios::binary); for(int i = 0; i < kernel_size * num_channels *
+    kernel_size * num_filters; i++) coeff_data.write((char *)&weights_data[i],
+    sizeof(unsigned int));
+      //coeff_data << "New " << static_cast<float>(new_coeff[i]) / (1 << 20) <<
+    " Orig " << static_cast<float>(weights_data[i]) / (1 << 20) << std::endl;
+    coeff_data.close();
+
+    std::ofstream new_coeff_data("/root/new_coeff_data.bin", std::ios::out |
+    std::ios::binary); for(int i = 0; i < kernel_size * num_channels *
+    kernel_size * num_filters; i++) new_coeff_data.write((char *)&new_coeff[i],
+    sizeof(unsigned int)); new_coeff_data.close();
+    */
     Conv2DAccel(dev, height, width, num_channels, num_filters, kernel_size,
-                block_size, is_output_padded, use_maxpool_2x2, use_bias,
-                use_relu, use_bn, input_addr, coeff_addr, output_addr,
-                bias_addr, a_addr, b_addr);
-
-    if (use_padding) alct->Free<T>(new_input);
-
-#ifdef RAINMAN_TEST
-    alct->Free<T>(new_coeff);
-#endif
+                block_size, use_padding, use_maxpool_2x2, use_bias, use_relu,
+                use_bn, input_addr, coeff_addr, output_addr, bias_addr, a_addr,
+                b_addr);
   }
 };
 
@@ -198,7 +203,25 @@ struct Conv2DRainmanAccel<T, Conv2DAccelImpl::SIM> {
                   T *output_data, int height, int width, int num_channels,
                   int num_filters, int kernel_size, int pad, int stride,
                   bool use_relu = false, bool use_maxpool_2x2 = false) {
-    using FpT = T;
+    LOG(INFO) << "Conv2DRainmanAccel SIM start";
+
+#ifdef DATA_TYPE16
+    // check type
+    if (!std::is_same<T, int16_t>::value)
+      LOG(FATAL) << "Specialised type T should be an int16_t";
+    // we assume that the simulated compuation is in FixedPoint<23, 8, true>
+    using FpT = FixedPoint<FIXED_NUM_FB, FIXED_NUM_TT - 1 - FIXED_NUM_FB, true>;
+    static_assert(std::is_same<FpT::ST, int16_t>::value,
+                  "Storaged type FpT::ST should be int16_t");
+#else
+    if (!std::is_same<T, int32_t>::value)
+      LOG(FATAL) << "Specialised type T should be an int32_t";
+    // we assume that the simulated compuation is in FixedPoint<23, 8, true>
+    using FpT = FixedPoint<FIXED_NUM_FB, FIXED_NUM_TT - 1 - FIXED_NUM_FB, true>;
+    static_assert(std::is_same<FpT::ST, int32_t>::value,
+                  "Storaged type FpT::ST should be int32_t");
+
+#endif
 
     int output_height = (height - kernel_size + 2 * pad) / stride + 1;
     int output_width = (width - kernel_size + 2 * pad) / stride + 1;
@@ -249,12 +272,12 @@ struct Conv2DRainmanAccel<T, Conv2DAccelImpl::SIM> {
                                     0, 2);
 
       for (int i = 0; i < output_data_num_elems / 4; i++)
-        output_data[i] = output_data_pool_sim[i];
+        output_data[i] = output_data_pool_sim[i].val();
 
       delete[] output_data_pool_sim;
     } else {
       for (int i = 0; i < output_data_num_elems; i++)
-        output_data[i] = output_data_sim[i];
+        output_data[i] = output_data_sim[i].val();
     }
 
     delete[] input_data_sim;
@@ -267,21 +290,10 @@ struct Conv2DRainmanAccel<T, Conv2DAccelImpl::SIM> {
     delete[] output_data_sim;
   }
 };
-
-template <>
-struct Conv2DRainmanAccel<float, Conv2DAccelImpl::SIM> {
-  void operator()(const float *input_data, const float *weights_data,
-                  const float *bias_data, const float *bn_a_data,
-                  const float *bn_b_data, float *output_data, int height,
-                  int width, int num_channels, int num_filters, int kernel_size,
-                  int pad, int stride, bool use_relu = false,
-                  bool use_maxpool_2x2 = false) {}
-};
-
 }  // namespace rainman
 }  // namespace accel
 }  // namespace nn
 }  // namespace raintime
 
-#undef RAINMAN_TEST
+#undef TEST_RAINMAN
 #endif

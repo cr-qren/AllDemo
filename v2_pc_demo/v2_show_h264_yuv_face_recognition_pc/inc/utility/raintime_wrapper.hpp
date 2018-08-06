@@ -41,11 +41,13 @@ public:
     }
 
     ~RaintimeUtils() {
+        LOG(INFO) << "raintime dealloc";
         delete runner;
-        delete dfg_def;
-        delete weight_data_map;
-        delete builder;
-        delete dfg;
+        LOG(INFO) << "raintime finish dealloc";
+        //delete dfg_def;
+        //delete weight_data_map;
+        //delete builder;
+        //delete dfg;
     }
 
     void InitData(string f1, string f2, string f3);

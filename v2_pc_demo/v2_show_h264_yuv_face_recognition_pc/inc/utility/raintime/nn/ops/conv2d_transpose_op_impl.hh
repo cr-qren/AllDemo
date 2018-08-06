@@ -26,10 +26,9 @@ class Conv2DTransposeOpImpl : public OpImpl {
   explicit Conv2DTransposeOpImpl(OpImplContext* ctx);
 
   void Run(OpImplEnv* env);
-  TensorShape GetOutputTensorShape(OpImplEnv* env);
 };
-}  // namespace ops
-}  // namespace nn
-}  // namespace raintime
+}
+}
+}
 
 #endif

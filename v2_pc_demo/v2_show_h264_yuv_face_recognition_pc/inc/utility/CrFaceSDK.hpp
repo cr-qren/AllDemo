@@ -111,9 +111,9 @@ class CrFaceSDK {
             ptr_faceid->addToDatabase(ptr_detector, ptr_feat, input_filename, ID);
         }
 
-        std::vector<std::string> match(std::vector<cv::Mat>& detected_faces) {
-            return ptr_faceid->matchID(ptr_feat, detected_faces);
-        }
+//std::vector<std::string> match(std::vector<cv::Mat>& detected_faces) {
+//            return ptr_faceid->matchID(ptr_feat, detected_faces);
+//        }
 
         std::vector<std::string> match(std::vector<FaceGroup>& detected_faces) {
             //pthread_create(&tid, NULL, raintime_thread_wrapper, (void*)(this));

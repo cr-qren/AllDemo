@@ -24,8 +24,6 @@ namespace cpu {
 
 enum Conv2DAccelImpl { CONV2D_IM2COL, CONV2D_REFER };
 
-#define DEF_CONV2D_ACCEL_IMPL Conv2DAccelImpl::CONV2D_IM2COL
-
 /** Acceleration function for Conv2D on CPU.
  *
  * \param input_data shape C x H x W.
@@ -43,11 +41,8 @@ enum Conv2DAccelImpl { CONV2D_IM2COL, CONV2D_REFER };
  *
  * \tparam T scalar type.
  */
-template <typename T, Conv2DAccelImpl impl = DEF_CONV2D_ACCEL_IMPL>
+template <typename T, Conv2DAccelImpl impl = CONV2D_IM2COL>
 struct Conv2DCpuAccel {};
-
-template <typename T>
-struct ActivationCpuAccel;
 
 template <typename T>
 struct Conv2DCpuAccel<T, CONV2D_IM2COL> {
@@ -56,8 +51,7 @@ struct Conv2DCpuAccel<T, CONV2D_IM2COL> {
                   T *output_data, int height, int width, int num_channels,
                   int num_filters, int kernel_size, int pad, int stride,
                   bool use_relu = false) {
-    using MT = typename Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-
+    typedef typename Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> MT;
     // typedef typename std::conditional<
     //     std::is_same<T, int32_t>::value,
     //     Eigen::Matrix<int64_t, Eigen::Dynamic, Eigen::Dynamic>,
@@ -102,7 +96,6 @@ struct Conv2DCpuAccel<T, CONV2D_IM2COL> {
                   out_of_border
                       ? static_cast<T>(0.0f)
                       : input_data[c * height * width + in_h * width + in_w];
-
               input_row_idx++;
             }
           }
@@ -110,7 +103,6 @@ struct Conv2DCpuAccel<T, CONV2D_IM2COL> {
         }
       }
     }
-
     // core GEMM
     im2col_output.noalias() = im2col_input * im2col_weights;
 
@@ -121,7 +113,6 @@ struct Conv2DCpuAccel<T, CONV2D_IM2COL> {
         for (int f = 0; f < num_filters; f++) {
           int output_data_idx =
               f * output_height * output_width + out_h * output_width + out_w;
-
           output_data[output_data_idx] =
               im2col_output(output_row_idx, f) +
               ((bias_data == nullptr) ? static_cast<T>(0.0f) : bias_data[f]);
@@ -130,7 +121,6 @@ struct Conv2DCpuAccel<T, CONV2D_IM2COL> {
             output_data[output_data_idx] =
                 output_data[output_data_idx] * bn_a_data[f] + bn_b_data[f];
           }
-
           if (use_relu)
             output_data[output_data_idx] =
                 std::max(output_data[output_data_idx], static_cast<T>(0.0f));
@@ -332,32 +322,30 @@ template <typename T>
 struct FCCpuAccel {
   void operator()(const T *input_data, const T *weights_data,
                   const T *bias_data, T *output_data, const int &rows,
-                  const int &columns, const int &batch_size) {
-    using MT = typename Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-    MT input(columns, batch_size);
-    MT weights(rows, columns);
-    MT output(rows, batch_size);
-
-    for (int i = 0; i < batch_size; i++) {
-      for (int j = 0; j < columns; j++) {
-        input(j, i) = input_data[i * columns + j];
-      }
-    }
-
-    for (int i = 0; i < rows; i++) {
-      for (int j = 0; j < columns; j++) {
-        weights(i, j) = weights_data[i * columns + j];
-      }
-    }
-
-    output.noalias() = weights * input;
+                  const int &columns, const int &batch_size,
+                  const bool &use_relu = false) {
     for (int i = 0; i < batch_size; i++) {
       for (int j = 0; j < rows; j++) {
-        output_data[i * rows + j] = output(j, i) + bias_data[j];
+        output_data[i * rows + j] = static_cast<T>(0.0f);
       }
     }
-  }  // namespace accel
-};   // namespace nn
+    for (int i = 0; i < batch_size; i++) {
+      for (int j = 0; j < rows; j++) {
+        for (int k = 0; k < columns; k++) {
+          output_data[i * rows + j] +=
+              input_data[i * columns + k] * weights_data[j * columns + k];
+        }
+      }
+      for (int j = 0; j < rows; j++) {
+        output_data[i * rows + j] += bias_data[j];
+        if (use_relu) {
+          output_data[i * rows + j] =
+              std::max(output_data[i * rows + j], static_cast<T>(0.0f));
+        }
+      }
+    }
+  }
+};  // namespace cpu
 
 // Fully connected layer
 template <typename T>
@@ -369,7 +357,7 @@ struct ArgmaxCpuAccel {
       for (size_t j = 0; j < input_size; j++) {
         if (j == 0 || max_output[i] < input_data[i * input_size + j]) {
           max_output[i] = input_data[i * input_size + j];
-          output_data[i] = (float)j;
+          output_data[i] = j;
         }
       }
     }
@@ -388,7 +376,7 @@ struct ArgmaxCpuAccel {
                              input_data[i * height * width + k * width + j])) {
               max_output[i * height + k] =
                   input_data[i * height * width + k * width + j];
-              output_data[i * height + k] = (float)j;
+              output_data[i * height + k] = j;
             }
           }
         }
@@ -403,7 +391,7 @@ struct ArgmaxCpuAccel {
                              input_data[i * height * width + k + j * width])) {
               max_output[i * width + k] =
                   input_data[i * height * width + k + j * width];
-              output_data[i * width + k] = (float)j;
+              output_data[i * width + k] = j;
             }
           }
         }
@@ -432,42 +420,6 @@ struct ChannelToSecondCpuAccel {
       for (int i = 0; i < height * width; i++) {
         output_data[c * height * width + i] = input_data[i * num_channels + c];
       }
-    }
-  }
-};
-
-template <typename T>
-struct ActivationCpuAccel {
-  void operator()(T *output_data, const std::string &activation,
-                  const int &size) {
-    if (activation == "Relu") {
-      for (size_t i = 0; i < size; i++) {
-        output_data[i] = std::max(output_data[i], static_cast<T>(0.0f));
-      }
-    } else if (activation == "Sigmoid") {
-      for (size_t i = 0; i < size; i++) {
-        output_data[i] =
-            1 / (1.0f + std::exp(-1 * static_cast<float>(output_data[i])));
-      }
-    } else if (activation == "Linear") {
-      for (size_t i = 0; i < size; i++) {
-        output_data[i] = output_data[i];
-      }
-    } else if (activation == "Step") {
-      for (size_t i = 0; i < size; i++) {
-        output_data[i] = static_cast<T>(output_data[i] > static_cast<T>(0.0f));
-      }
-    } else if (activation == "Abs") {
-      for (size_t i = 0; i < size; i++) {
-        output_data[i] = std::abs(static_cast<float>(output_data[i]));
-      }
-    } else if (activation == "Tanh") {
-      for (size_t i = 0; i < size; i++) {
-        output_data[i] = std::tanh(static_cast<float>(output_data[i]));
-      }
-    } else {
-      throw std::invalid_argument(
-          "activation function could not be recognised.");
     }
   }
 };

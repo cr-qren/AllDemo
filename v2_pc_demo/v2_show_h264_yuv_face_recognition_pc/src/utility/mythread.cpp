@@ -1,5 +1,24 @@
 #include "mythread.h"
+/*
+std::vector<string> str_split(string s,  string c)
+{
+  std::string::size_type pos1, pos2;
+  std::vector<string> v;
+  pos2 = s.find(c);
+  pos1 = 0;
+  while(std::string::npos != pos2)
+  {
+    v.push_back(s.substr(pos1, pos2-pos1));
 
+    pos1 = pos2 + c.size();
+    pos2 = s.find(c, pos1);
+  }
+  if(pos1 != s.length())
+    v.push_back(s.substr(pos1));
+
+  return v;
+}
+*/
 void *mythread_1(void *arg)
 {
   VideoStream *vs = (VideoStream *)arg;
@@ -49,7 +68,7 @@ void *mythread_1(void *arg)
       {
         char buffy[256];
         sprintf(buffy, "%05d.jpg",count);
-        imwrite(buffy, xx);
+ //       imwrite(buffy, xx);
         count ++;
       }
       /*      show info    <mat, string>     */
@@ -66,7 +85,7 @@ void *mythread_1(void *arg)
       char buffxx[256];
       sprintf(buffxx, "%d_%d_%d.jpg",x,y,count);
       vs->mutex_1.lock();
-      imageMosaic(vs->resultImg, cur_frame, it->second, x, y, vs->resultImg->width()/5, vs->resultImg->height()/5); 
+      imageMosaic(vs->resultImg, cur_frame, str_split(it->second,"_")[0], x, y, vs->resultImg->width()/5, vs->resultImg->height()/5); 
       //vs->resultImg->save(buffxx, "JPG");
       vs->mutex_1.unlock();
 

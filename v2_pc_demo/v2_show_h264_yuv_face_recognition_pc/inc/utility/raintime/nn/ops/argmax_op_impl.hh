@@ -30,7 +30,6 @@ class ArgmaxOpImpl : public OpImpl {
   explicit ArgmaxOpImpl(OpImplContext *ctx);
 
   void Run(OpImplEnv *env);
-  TensorShape GetOutputTensorShape(OpImplEnv *env);
 };
 }  // namespace ops
 }  // namespace nn

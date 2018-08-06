@@ -33,11 +33,8 @@ namespace ops {
 
 using namespace raintime::op_impl;
 
-bool IsNodePaddedConv2D(DFGNode *node, int pad_size);
-bool AreAllOutNodesPaddedConv2D(DFGNode *node);
-
 template <typename Device, typename T,
-          cpu::Conv2DAccelImpl cpu_impl = cpu::DEF_CONV2D_ACCEL_IMPL,
+          cpu::Conv2DAccelImpl cpu_impl = cpu::Conv2DAccelImpl::CONV2D_IM2COL,
           rainman::Conv2DAccelImpl rainman_accel =
               rainman::Conv2DAccelImpl::SIM>
 class Conv2DOpImpl : public OpImpl {
@@ -45,11 +42,9 @@ class Conv2DOpImpl : public OpImpl {
   explicit Conv2DOpImpl(OpImplContext *ctx);
 
   void Run(OpImplEnv *env);
-  TensorShape GetOutputTensorShape(OpImplEnv *env);
 };
-
-}  // namespace ops
-}  // namespace nn
-}  // namespace raintime
+}
+}
+}
 
 #endif

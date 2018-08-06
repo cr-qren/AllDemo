@@ -14,16 +14,14 @@
 #include "plumber_ir/dfg_def.pb.h"
 
 #include <glog/logging.h>
-#include <stdio.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <sstream>
 #include <stdexcept>
+#include <stdio.h>
 
 #include "raintime/core/allocator.hh"
 #include "raintime/core/fpga_device_utils.hh"
-#define ConvertAddr(mapped_addr, fpga_addr) \
-  fpga_addr = mapped_addr - (size_t)mem_dev + DDR_MEM_BASE
+#define ConvertAddr(mapped_addr, fpga_addr) fpga_addr = mapped_addr -(size_t)mem_dev + DDR_MEM_BASE
 
 using namespace plumber_ir;
 
@@ -55,7 +53,7 @@ class FpgaDevice : public Device {
     base_addr_ = base_addr;
   }
 
-  bool IsInAddressRange(size_t addr) {
+  bool IsInAddressRange(size_t addr) {  
     return addr >= base_addr() && addr < (base_addr() + num_bytes());
   }
 
@@ -128,21 +126,17 @@ class FpgaDevice : public Device {
                     uint32_t dma_id) {
     raintime::ReadFromFpga(reg_dev, addr, size, channel_id, dma_id);
   }
-
-  void WriteToFpgaPV(int dma_id, RegAddrT addr, int sif_channel, int width,
-                     int height, int stride) {
+  
+  void WriteToFpgaPV(int dma_id, RegAddrT addr, int sif_channel, int width, int height, int stride) {
     size_t fpga_addr;
     ConvertAddr(addr, fpga_addr);
-    raintime::WriteToFpgaPV(reg_dev, fpga_addr, sif_channel, width, height,
-                            stride, dma_id);
+    raintime::WriteToFpgaPV(reg_dev, fpga_addr, sif_channel, width, height, stride, dma_id);
   }
 
-  void ReadFromFpgaPV(int dma_id, RegAddrT addr, int sif_channel, int width,
-                      int height, int stride) {
+  void ReadFromFpgaPV(int dma_id, RegAddrT addr, int sif_channel, int width, int height, int stride) {
     size_t fpga_addr;
     ConvertAddr(addr, fpga_addr);
-    raintime::ReadFromFpgaPV(reg_dev, fpga_addr, sif_channel, width, height,
-                             stride, dma_id);
+    raintime::ReadFromFpgaPV(reg_dev, fpga_addr, sif_channel, width, height, stride, dma_id);
   }
 
   void OpenMemDevice() {
@@ -174,8 +168,8 @@ class FpgaDevice : public Device {
     raintime::DumpFile(file_name, addr, size);
   }
 
-  void *GetMemDev() { return mem_dev; }
-
+  void *GetMemDev() {return mem_dev;}
+ 
  private:
   size_t base_addr_, num_bytes_;
 
@@ -192,38 +186,18 @@ class FpgaDevice : public Device {
   void *mem_dev = nullptr;
 };
 
-#define DEVICE_CPU DFGNodeDef_Device_CPU
-#define DEVICE_FPGA DFGNodeDef_Device_FPGA
-
-// a type alias
-using DeviceEnum = DFGNodeDef_Device;
-
-inline const char *GetDeviceName(DeviceEnum device_enum) {
-  switch (device_enum) {
-    case DEVICE_CPU:
-      return "CPU";
-    case DEVICE_FPGA:
-      return "FPGA";
-    default:
-      std::stringstream ss;
-      ss << "Cannot recognise device enum: " << device_enum;
-
-      throw std::runtime_error(ss.str());
-  }
-}
-
 template <DFGNodeDef_Device device_enum>
 struct DeviceTypeTraits {};
 
 template <>
-struct DeviceTypeTraits<DEVICE_CPU> {
+struct DeviceTypeTraits<DFGNodeDef_Device_CPU> {
   typedef CpuDevice DeviceType;
 };
 
 template <>
-struct DeviceTypeTraits<DEVICE_FPGA> {
+struct DeviceTypeTraits<DFGNodeDef_Device_FPGA> {
   typedef FpgaDevice DeviceType;
 };
-}  // namespace raintime
+}
 
 #endif  // RAINTIME_DEVICE_HH

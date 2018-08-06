@@ -30,7 +30,6 @@ class SoftmaxOpImpl : public OpImpl {
   explicit SoftmaxOpImpl(OpImplContext *ctx);
 
   void Run(OpImplEnv *env);
-  TensorShape GetOutputTensorShape(OpImplEnv *env);
 };
 }  // namespace ops
 }  // namespace nn

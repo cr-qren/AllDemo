@@ -30,10 +30,9 @@ class MaxPool2DOpImpl : public OpImpl {
   explicit MaxPool2DOpImpl(OpImplContext *ctx);
 
   void Run(OpImplEnv *env);
-  TensorShape GetOutputTensorShape(OpImplEnv *env);
 };
-}  // namespace ops
-}  // namespace nn
-}  // namespace raintime
+}
+}
+}
 
 #endif

@@ -29,7 +29,6 @@ class LRNOpImpl : public OpImpl {
   explicit LRNOpImpl(OpImplContext *ctx);
 
   void Run(OpImplEnv *env);
-  TensorShape GetOutputTensorShape(OpImplEnv *env);
 };
 }  // namespace ops
 }  // namespace nn

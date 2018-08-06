@@ -13,7 +13,6 @@
 
 #include <glog/logging.h>
 #include <iostream>
-#include <type_traits>
 #include "raintime/core.h"
 #include "raintime/nn/accel.h"
 
@@ -28,8 +27,7 @@ template <typename Device, typename T>
 struct FCFunctor {
   void operator()(Tensor *input, const Tensor *weights, const Tensor *bias,
                   Tensor *output, const int &rows, const int &columns,
-                  const int &batch_size,
-                  const std::string &activation = "Relu") {
+                  const int &batch_size, const bool &use_relu = false) {
     LOG(FATAL) << "The Fully Connected functor is not specialised properly";
   }
 };
@@ -38,8 +36,7 @@ template <typename T>
 struct FCFunctor<CpuDevice, T> {
   void operator()(Tensor *input, const Tensor *weights, const Tensor *bias,
                   Tensor *output, const int &rows, const int &columns,
-                  const int &batch_size,
-                  const std::string &activation = "Relu") {
+                  const int &batch_size, const bool &use_relu = false) {
     auto input_columns = static_cast<int>(weights->dim_size(1));
     auto output_rows = static_cast<int>(weights->dim_size(0));
     auto input_batch_size = static_cast<int>(input->dim_size(0));
@@ -54,9 +51,7 @@ struct FCFunctor<CpuDevice, T> {
     auto output_ptr = output->data<T>();
 
     cpu::FCCpuAccel<T>()(input_ptr, weights_ptr, bias_ptr, output_ptr, rows,
-                         columns, batch_size);
-
-    cpu::ActivationCpuAccel<T>()(output_ptr, activation, rows * batch_size);
+                         columns, batch_size, use_relu);
   }
 };
 }  // namespace functor

@@ -15,6 +15,19 @@
 
 #include "raintime/core/fixed_point.hh"
 
+// NOTE(vince): I think it would be a good idea to use 32 by default.
+// #ifdef DATA_TYPE32
+#define FIXED_NUM_TT 32
+#define FIXED_NUM_FB 21
+// #endif
+
+#ifdef DATA_TYPE16
+#undef FIXED_NUM_TT
+#undef FIXED_NUM_FB
+#define FIXED_NUM_TT 16
+#define FIXED_NUM_FB 6
+#endif
+
 // Implementation notes:
 // We put all classes, functions, etc. in under core/ into
 // the top namespace.
@@ -64,192 +77,138 @@ struct IsDataTypeValid {
   static constexpr bool value = false; /*!< specify whether T is valid */
 };
 
-template <DataType T>
-struct IsDataTypeFixedPoint {
-  static constexpr bool value = false;
-};
-
 /*!< Convert DataType to built-in types */
 template <DataType T, typename TP = FixedParamDef>
 struct DataTypeToBuiltIn {
   static_assert(IsDataTypeValid<T>::value, "Numeric type is not supported");
 };
 
-// a type alias
-using TypeEnum = DataType;
-
-inline const char* GetTypeName(TypeEnum type_enum) {
-  return DataType_Name(type_enum).c_str();
-}
-
 #define SINGLE_ARG(...) __VA_ARGS__
-#define DATA_TYPE_AND_BUILT_IN(TYPE, BUILT_IN, IS_FIXED_POINT) \
-  template <>                                                  \
-  struct IsDataTypeValid<TYPE> {                               \
-    static constexpr bool value = true;                        \
-  };                                                           \
-  template <>                                                  \
-  struct IsDataTypeFixedPoint<TYPE> {                          \
-    static constexpr bool value = IS_FIXED_POINT;              \
-  };                                                           \
-  template <>                                                  \
-  struct DataTypeToBuiltIn<TYPE> {                             \
-    typedef BUILT_IN T;                                        \
+#define DATA_TYPE_AND_BUILT_IN(TYPE, BUILT_IN) \
+  template <>                                  \
+  struct IsDataTypeValid<TYPE> {               \
+    static constexpr bool value = true;        \
+  };                                           \
+  template <>                                  \
+  struct DataTypeToBuiltIn<TYPE> {             \
+    typedef BUILT_IN T;                        \
   };
-#define DATA_TYPE_AND_BUILT_IN_FIXED_POINT(NB, FB)                         \
-  DATA_TYPE_AND_BUILT_IN(T_FIXED##NB##_##FB##_U,                           \
-                         SINGLE_ARG(FixedPoint<FB, NB - FB, false>), true) \
-  DATA_TYPE_AND_BUILT_IN(T_FIXED##NB##_##FB##_S,                           \
-                         SINGLE_ARG(FixedPoint<FB, NB - FB - 1, true>), true)
 
-// Floating-point data type
-DATA_TYPE_AND_BUILT_IN(T_FLOAT, float, false)
-
-// Default configuration of fixed-point data types
-DATA_TYPE_AND_BUILT_IN(
-    T_FIXED32,
-    SINGLE_ARG(FixedPoint<FIXED_NUM_FB_32, 31 - FIXED_NUM_FB_32, true>), true)
-DATA_TYPE_AND_BUILT_IN(
-    T_FIXED16,
-    SINGLE_ARG(FixedPoint<FIXED_NUM_FB_16, 15 - FIXED_NUM_FB_16, true>), true)
-DATA_TYPE_AND_BUILT_IN(
-    T_FIXED8, SINGLE_ARG(FixedPoint<FIXED_NUM_FB_8, 7 - FIXED_NUM_FB_8, true>),
-    true)
-
-// construct all cases of fixed-point data types
-#define ITERATE_ALL_7(F, ...) \
-  F(1, ##__VA_ARGS__)         \
-  F(2, ##__VA_ARGS__)         \
-  F(3, ##__VA_ARGS__)         \
-  F(4, ##__VA_ARGS__)         \
-  F(5, ##__VA_ARGS__) F(6, ##__VA_ARGS__) F(7, ##__VA_ARGS__)
-#define ITERATE_ALL_7_15(F, ...) \
-  F(9, ##__VA_ARGS__)            \
-  F(10, ##__VA_ARGS__)           \
-  F(11, ##__VA_ARGS__)           \
-  F(12, ##__VA_ARGS__)           \
-  F(13, ##__VA_ARGS__) F(14, ##__VA_ARGS__) F(15, ##__VA_ARGS__)
-#define ITERATE_ALL_7_23(F, ...) \
-  F(17, ##__VA_ARGS__)           \
-  F(18, ##__VA_ARGS__)           \
-  F(19, ##__VA_ARGS__)           \
-  F(20, ##__VA_ARGS__)           \
-  F(21, ##__VA_ARGS__) F(22, ##__VA_ARGS__) F(23, ##__VA_ARGS__)
-#define ITERATE_ALL_7_31(F, ...) \
-  F(25, ##__VA_ARGS__)           \
-  F(26, ##__VA_ARGS__)           \
-  F(27, ##__VA_ARGS__)           \
-  F(28, ##__VA_ARGS__)           \
-  F(29, ##__VA_ARGS__) F(30, ##__VA_ARGS__) F(31, ##__VA_ARGS__)
-#define ITERATE_ALL_8(F, ...) \
-  ITERATE_ALL_7(F, ##__VA_ARGS__) F(8, ##__VA_ARGS__)
-#define ITERATE_ALL_15(F, ...) \
-  ITERATE_ALL_8(F, ##__VA_ARGS__) ITERATE_ALL_7_15(F, ##__VA_ARGS__)
-#define ITERATE_ALL_16(F, ...) \
-  ITERATE_ALL_15(F, ##__VA_ARGS__) F(16, ##__VA_ARGS__)
-#define ITERATE_ALL_23(F, ...) \
-  ITERATE_ALL_16(F, ##__VA_ARGS__) ITERATE_ALL_7_23(F, ##__VA_ARGS__)
-#define ITERATE_ALL_24(F, ...) \
-  ITERATE_ALL_23(F, ##__VA_ARGS__) F(24, ##__VA_ARGS__)
-#define ITERATE_ALL_31(F, ...) \
-  ITERATE_ALL_24(F, ##__VA_ARGS__) ITERATE_ALL_7_31(F, ##__VA_ARGS__)
-#define ITERATE_ALL_32(F, ...) \
-  ITERATE_ALL_31(F, ##__VA_ARGS__) F(32, ##__VA_ARGS__)
-
-// 8-bit fixed-point data types
-#define DATA_TYPE_AND_BUILT_IN_FIXED8(i) \
-  DATA_TYPE_AND_BUILT_IN_FIXED_POINT(8, i)
-// 16-bit fixed-point data types
-#define DATA_TYPE_AND_BUILT_IN_FIXED16(i) \
-  DATA_TYPE_AND_BUILT_IN_FIXED_POINT(16, i)
-// 32-bit fixed-point data types
-#define DATA_TYPE_AND_BUILT_IN_FIXED32(i) \
-  DATA_TYPE_AND_BUILT_IN_FIXED_POINT(32, i)
-
-ITERATE_ALL_7(DATA_TYPE_AND_BUILT_IN_FIXED8)
-ITERATE_ALL_15(DATA_TYPE_AND_BUILT_IN_FIXED16)
-ITERATE_ALL_31(DATA_TYPE_AND_BUILT_IN_FIXED32)
-
-#undef DATA_TYPE_AND_BUILT_IN_FIXED_POINT
+DATA_TYPE_AND_BUILT_IN(T_FLOAT, float)
+DATA_TYPE_AND_BUILT_IN(T_FIXED32, int32_t)
+DATA_TYPE_AND_BUILT_IN(T_FIXED16, int16_t)
+DATA_TYPE_AND_BUILT_IN(T_FIXED8, int8_t)
+DATA_TYPE_AND_BUILT_IN(FLOAT, float)
+DATA_TYPE_AND_BUILT_IN(FIXED, int32_t)
+DATA_TYPE_AND_BUILT_IN(INT, int32_t)
+DATA_TYPE_AND_BUILT_IN(T_FIXED8_1_U, SINGLE_ARG(FixedPoint<1, 7, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED8_2_U, SINGLE_ARG(FixedPoint<2, 6, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED8_3_U, SINGLE_ARG(FixedPoint<3, 5, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED8_4_U, SINGLE_ARG(FixedPoint<4, 4, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED8_5_U, SINGLE_ARG(FixedPoint<5, 3, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED8_6_U, SINGLE_ARG(FixedPoint<6, 2, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED8_7_U, SINGLE_ARG(FixedPoint<7, 1, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED8_1_S, SINGLE_ARG(FixedPoint<1, 6, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED8_2_S, SINGLE_ARG(FixedPoint<2, 5, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED8_3_S, SINGLE_ARG(FixedPoint<3, 4, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED8_4_S, SINGLE_ARG(FixedPoint<4, 3, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED8_5_S, SINGLE_ARG(FixedPoint<5, 2, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED8_6_S, SINGLE_ARG(FixedPoint<6, 1, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED8_7_S, SINGLE_ARG(FixedPoint<7, 0, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_1_U, SINGLE_ARG(FixedPoint<1, 15, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_2_U, SINGLE_ARG(FixedPoint<2, 14, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_3_U, SINGLE_ARG(FixedPoint<3, 13, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_4_U, SINGLE_ARG(FixedPoint<4, 12, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_5_U, SINGLE_ARG(FixedPoint<5, 11, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_6_U, SINGLE_ARG(FixedPoint<6, 10, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_7_U, SINGLE_ARG(FixedPoint<7, 9, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_8_U, SINGLE_ARG(FixedPoint<8, 8, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_9_U, SINGLE_ARG(FixedPoint<9, 7, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_10_U, SINGLE_ARG(FixedPoint<10, 6, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_11_U, SINGLE_ARG(FixedPoint<11, 5, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_12_U, SINGLE_ARG(FixedPoint<12, 4, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_13_U, SINGLE_ARG(FixedPoint<13, 3, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_14_U, SINGLE_ARG(FixedPoint<14, 2, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_15_U, SINGLE_ARG(FixedPoint<15, 1, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_1_S, SINGLE_ARG(FixedPoint<1, 14, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_2_S, SINGLE_ARG(FixedPoint<2, 13, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_3_S, SINGLE_ARG(FixedPoint<3, 12, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_4_S, SINGLE_ARG(FixedPoint<4, 11, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_5_S, SINGLE_ARG(FixedPoint<5, 10, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_6_S, SINGLE_ARG(FixedPoint<6, 9, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_7_S, SINGLE_ARG(FixedPoint<7, 8, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_8_S, SINGLE_ARG(FixedPoint<8, 7, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_9_S, SINGLE_ARG(FixedPoint<9, 6, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_10_S, SINGLE_ARG(FixedPoint<10, 5, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_11_S, SINGLE_ARG(FixedPoint<11, 4, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_12_S, SINGLE_ARG(FixedPoint<12, 3, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_13_S, SINGLE_ARG(FixedPoint<13, 2, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_14_S, SINGLE_ARG(FixedPoint<14, 1, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED16_15_S, SINGLE_ARG(FixedPoint<15, 0, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_1_U, SINGLE_ARG(FixedPoint<1, 31, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_2_U, SINGLE_ARG(FixedPoint<2, 30, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_3_U, SINGLE_ARG(FixedPoint<3, 29, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_4_U, SINGLE_ARG(FixedPoint<4, 28, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_5_U, SINGLE_ARG(FixedPoint<5, 27, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_6_U, SINGLE_ARG(FixedPoint<6, 26, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_7_U, SINGLE_ARG(FixedPoint<7, 25, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_8_U, SINGLE_ARG(FixedPoint<8, 24, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_9_U, SINGLE_ARG(FixedPoint<9, 23, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_10_U, SINGLE_ARG(FixedPoint<10, 22, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_11_U, SINGLE_ARG(FixedPoint<11, 21, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_12_U, SINGLE_ARG(FixedPoint<12, 20, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_13_U, SINGLE_ARG(FixedPoint<13, 19, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_14_U, SINGLE_ARG(FixedPoint<14, 18, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_15_U, SINGLE_ARG(FixedPoint<15, 17, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_16_U, SINGLE_ARG(FixedPoint<16, 16, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_17_U, SINGLE_ARG(FixedPoint<17, 15, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_18_U, SINGLE_ARG(FixedPoint<18, 14, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_19_U, SINGLE_ARG(FixedPoint<19, 13, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_20_U, SINGLE_ARG(FixedPoint<20, 12, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_21_U, SINGLE_ARG(FixedPoint<21, 11, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_22_U, SINGLE_ARG(FixedPoint<22, 10, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_23_U, SINGLE_ARG(FixedPoint<23, 9, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_24_U, SINGLE_ARG(FixedPoint<24, 8, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_25_U, SINGLE_ARG(FixedPoint<25, 7, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_26_U, SINGLE_ARG(FixedPoint<26, 6, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_27_U, SINGLE_ARG(FixedPoint<27, 5, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_28_U, SINGLE_ARG(FixedPoint<28, 4, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_29_U, SINGLE_ARG(FixedPoint<29, 3, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_30_U, SINGLE_ARG(FixedPoint<30, 2, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_31_U, SINGLE_ARG(FixedPoint<31, 1, false>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_1_S, SINGLE_ARG(FixedPoint<1, 30, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_2_S, SINGLE_ARG(FixedPoint<2, 29, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_3_S, SINGLE_ARG(FixedPoint<3, 28, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_4_S, SINGLE_ARG(FixedPoint<4, 27, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_5_S, SINGLE_ARG(FixedPoint<5, 26, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_6_S, SINGLE_ARG(FixedPoint<6, 25, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_7_S, SINGLE_ARG(FixedPoint<7, 24, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_8_S, SINGLE_ARG(FixedPoint<8, 23, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_9_S, SINGLE_ARG(FixedPoint<9, 22, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_10_S, SINGLE_ARG(FixedPoint<10, 21, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_11_S, SINGLE_ARG(FixedPoint<11, 20, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_12_S, SINGLE_ARG(FixedPoint<12, 19, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_13_S, SINGLE_ARG(FixedPoint<13, 18, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_14_S, SINGLE_ARG(FixedPoint<14, 17, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_15_S, SINGLE_ARG(FixedPoint<15, 16, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_16_S, SINGLE_ARG(FixedPoint<16, 15, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_17_S, SINGLE_ARG(FixedPoint<17, 14, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_18_S, SINGLE_ARG(FixedPoint<18, 13, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_19_S, SINGLE_ARG(FixedPoint<19, 12, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_20_S, SINGLE_ARG(FixedPoint<20, 11, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_21_S, SINGLE_ARG(FixedPoint<21, 10, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_22_S, SINGLE_ARG(FixedPoint<22, 9, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_23_S, SINGLE_ARG(FixedPoint<23, 8, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_24_S, SINGLE_ARG(FixedPoint<24, 7, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_25_S, SINGLE_ARG(FixedPoint<25, 6, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_26_S, SINGLE_ARG(FixedPoint<26, 5, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_27_S, SINGLE_ARG(FixedPoint<27, 4, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_28_S, SINGLE_ARG(FixedPoint<28, 3, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_29_S, SINGLE_ARG(FixedPoint<29, 2, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_30_S, SINGLE_ARG(FixedPoint<30, 1, true>))
+DATA_TYPE_AND_BUILT_IN(T_FIXED32_31_S, SINGLE_ARG(FixedPoint<31, 0, true>))
 #undef DATA_TYPE_AND_BUILT_IN
-
-// Call types under a specific category
-#define BUILT_IN(TYPE) DataTypeToBuiltIn<TYPE>::T
-// Actual place that calls the FUNC
-#define WRAP_BUILT_IN(TYPE, FUNC, ...) \
-  FUNC(SINGLE_ARG(BUILT_IN(TYPE)), ##__VA_ARGS__)
-
-// initialize function with floating-point data types
-#define INIT_BY_FLOAT_TYPE(FUNC, ...) FUNC(T_FLOAT, ##__VA_ARGS__)
-
-// initialize function with fixed-point data types
-#define INIT_BY_FIXED_NB_FB_TYPE(NB, FB, FUNC, ...) \
-  FUNC(T_FIXED##NB##_##FB##_S, ##__VA_ARGS__)       \
-  FUNC(T_FIXED##NB##_##FB##_U, ##__VA_ARGS__)
-
-#define INIT_BY_FIXED32_FB_TYPE(FB, FUNC, ...) \
-  INIT_BY_FIXED_NB_FB_TYPE(32, FB, FUNC, ##__VA_ARGS__)
-#define INIT_BY_FIXED16_FB_TYPE(FB, FUNC, ...) \
-  INIT_BY_FIXED_NB_FB_TYPE(16, FB, FUNC, ##__VA_ARGS__)
-#define INIT_BY_FIXED8_FB_TYPE(FB, FUNC, ...) \
-  INIT_BY_FIXED_NB_FB_TYPE(8, FB, FUNC, ##__VA_ARGS__)
-
-#define INIT_BY_FIXED32_TYPE_W(FUNC, ...) \
-  ITERATE_ALL_31(INIT_BY_FIXED32_FB_TYPE, FUNC, ##__VA_ARGS__)
-#define INIT_BY_FIXED16_TYPE_W(FUNC, ...) \
-  ITERATE_ALL_15(INIT_BY_FIXED16_FB_TYPE, FUNC, ##__VA_ARGS__)
-#define INIT_BY_FIXED8_TYPE_W(FUNC, ...) \
-  ITERATE_ALL_7(INIT_BY_FIXED8_FB_TYPE, FUNC, ##__VA_ARGS__)
-
-#define INIT_BY_FIXED32_TYPE_O(FUNC, ...) FUNC(T_FIXED32, ##__VA_ARGS__)
-#define INIT_BY_FIXED16_TYPE_O(FUNC, ...) FUNC(T_FIXED16, ##__VA_ARGS__)
-#define INIT_BY_FIXED8_TYPE_O(FUNC, ...) FUNC(T_FIXED8, ##__VA_ARGS__)
-
-// in the LITE mode, we only use T_FIXED32, T_FIXED16, and T_FIXED8
-#ifdef LITE
-#define INIT_BY_FIXED32_TYPE(FUNC, ...) \
-  INIT_BY_FIXED32_TYPE_O(FUNC, ##__VA_ARGS__)
-#define INIT_BY_FIXED16_TYPE(FUNC, ...) \
-  INIT_BY_FIXED16_TYPE_O(FUNC, ##__VA_ARGS__)
-#define INIT_BY_FIXED8_TYPE(FUNC, ...) \
-  INIT_BY_FIXED8_TYPE_O(FUNC, ##__VA_ARGS__)
-
-#define INIT_BY_FIXED_TYPE_W(FUNC, ...)     \
-  INIT_BY_FIXED32_TYPE(FUNC, ##__VA_ARGS__) \
-  INIT_BY_FIXED16_TYPE(FUNC, ##__VA_ARGS__) \
-  INIT_BY_FIXED8_TYPE(FUNC, ##__VA_ARGS__)
-#else
-#define INIT_BY_FIXED32_TYPE(FUNC, ...)       \
-  INIT_BY_FIXED32_TYPE_O(FUNC, ##__VA_ARGS__) \
-  INIT_BY_FIXED32_TYPE_W(FUNC, ##__VA_ARGS__)
-#define INIT_BY_FIXED16_TYPE(FUNC, ...)       \
-  INIT_BY_FIXED16_TYPE_O(FUNC, ##__VA_ARGS__) \
-  INIT_BY_FIXED16_TYPE_W(FUNC, ##__VA_ARGS__)
-#define INIT_BY_FIXED8_TYPE(FUNC, ...)       \
-  INIT_BY_FIXED8_TYPE_O(FUNC, ##__VA_ARGS__) \
-  INIT_BY_FIXED8_TYPE_W(FUNC, ##__VA_ARGS__)
-
-#define INIT_BY_FIXED_TYPE_W(FUNC, ...)       \
-  INIT_BY_FIXED32_TYPE_W(FUNC, ##__VA_ARGS__) \
-  INIT_BY_FIXED16_TYPE_W(FUNC, ##__VA_ARGS__) \
-  INIT_BY_FIXED8_TYPE_W(FUNC, ##__VA_ARGS__)
-#endif
-
-#define INIT_BY_FIXED_TYPE(FUNC, ...)       \
-  INIT_BY_FIXED32_TYPE(FUNC, ##__VA_ARGS__) \
-  INIT_BY_FIXED16_TYPE(FUNC, ##__VA_ARGS__) \
-  INIT_BY_FIXED8_TYPE(FUNC, ##__VA_ARGS__)
-
-#define INIT_BY_ALL_TYPE(FUNC, ...)       \
-  INIT_BY_FLOAT_TYPE(FUNC, ##__VA_ARGS__) \
-  INIT_BY_FIXED_TYPE(FUNC, ##__VA_ARGS__)
-
-#define INIT_BY_ALL_TYPE_W(FUNC, ...)     \
-  INIT_BY_FLOAT_TYPE(FUNC, ##__VA_ARGS__) \
-  INIT_BY_FIXED_TYPE_W(FUNC, ##__VA_ARGS__)
-
-#undef SINGLE_ARG
-
+#undef BUILT_IN
 }  // namespace type
 }  // namespace raintime
 

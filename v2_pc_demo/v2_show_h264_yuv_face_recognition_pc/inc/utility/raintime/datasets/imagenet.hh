@@ -21,7 +21,7 @@ int getdir(const std::string& dir, vector<std::string>& files) {
   DIR* dp;
   struct dirent* dirp;
   if ((dp = opendir(dir.c_str())) == NULL) {
-    std::cout << "Error(" << errno << ") opening " << dir << std::endl;
+    cout << "Error(" << errno << ") opening " << dir << endl;
     return errno;
   }
 
