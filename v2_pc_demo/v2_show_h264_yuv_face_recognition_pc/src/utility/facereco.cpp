@@ -37,7 +37,7 @@ FaceSDK::CrFaceSDK *Init()
     fid >> filename;
     if (filename.size()<=0) break;
     cout << "Processing " << filename << endl;
-    auto tokens = str_split(filename, ".");
+    auto tokens = str_split(filename, "_");
     cout << "adding " << tokens[0] << " to database" << endl;
     sdk->addToDatabase(basedir+filename, tokens[0]);
     cout << "finish add to database" << endl << endl;

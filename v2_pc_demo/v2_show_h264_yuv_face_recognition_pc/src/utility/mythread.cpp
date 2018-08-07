@@ -85,7 +85,8 @@ void *mythread_1(void *arg)
       char buffxx[256];
       sprintf(buffxx, "%d_%d_%d.jpg",x,y,count);
       vs->mutex_1.lock();
-      imageMosaic(vs->resultImg, cur_frame, str_split(it->second,"_")[0], x, y, vs->resultImg->width()/5, vs->resultImg->height()/5); 
+      //imageMosaic(vs->resultImg, cur_frame, str_split(it->second,"_")[0], x, y, vs->resultImg->width()/5, vs->resultImg->height()/5); 
+      imageMosaic(vs->resultImg, cur_frame, it->second, x, y, vs->resultImg->width()/5, vs->resultImg->height()/5); 
       //vs->resultImg->save(buffxx, "JPG");
       vs->mutex_1.unlock();
 
