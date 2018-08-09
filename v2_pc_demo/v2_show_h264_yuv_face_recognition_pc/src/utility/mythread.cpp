@@ -43,6 +43,10 @@ void *mythread_1(void *arg)
     printf("C: %d\n", yuvData.yuvPram->Channel);
     printf("SIZE: %d\n", yuvData.yuvPram->BuffSize);
     /*        yuv -> Mat        */
+    if(yuvData.yuvPram->BuffSize <= 0)
+    {
+      continue;
+    }
 
     cv::Mat xx = YUV420Img2RGB_Mat(yuvData.yuvBuff, yuvData.yuvPram->Height, yuvData.yuvPram->Width);
     //        char buffy[256];
