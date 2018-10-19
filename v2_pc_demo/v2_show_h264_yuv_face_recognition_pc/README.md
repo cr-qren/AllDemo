@@ -1,6 +1,10 @@
 # v2_show_h264_yuv_face_recognition_pc 
   This is at pc platform to show h264 yuv face recognition demo.
 ## Dependent
+rtsp 
+萤石：rtsp://ａｄｍｉｎ：ｌｅｔｍｅｉｎ１@１９２．１６８．１．１６８:５５４/ｈ２６４/ch1(2)/main/av_stream
+ｐｏｙａ：rtsp://ａｄｍｉｎ:ｌｅｔｍｅｉｎ１@１９２．１６８．１．１６８:５５４/１（２）
+ＴＰ—Ｌｉｎｋ：rtsp://ａｄｍｉｎ:ｌｅｔｍｅｉｎ１@１９２．１６８．１．１６７:５５４/stream1(2)
 ```
 1. QT5      Install  with ` $ sudo apt-get install qt5-default qtcreator `
 2. libx264  Download with ` http://www.videolan.org/developers/x264.html `
